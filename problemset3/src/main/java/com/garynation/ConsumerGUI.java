@@ -20,7 +20,7 @@ public class ConsumerGUI extends Application {
     private int port = 12345; // Change to the desired port
     private String saveDirectory = "uploaded_videos"; // Directory to save videos
     private ListView<String> videoListView;
-    private MediaPlayer mediaPlayer;
+    private MediaPlayer previewMediaPlayer;
     private MediaView mediaView;
 
     // Define the size of the preview
@@ -45,6 +45,8 @@ public class ConsumerGUI extends Application {
         // Set up the layout
         BorderPane borderPane = new BorderPane();
         VBox listVBox = new VBox(listHeader, videoListView);
+        listVBox.setPrefWidth(400); // Set the preferred width
+        listVBox.setPrefHeight(300); // Set the preferred height
         VBox previewVBox = new VBox(previewHeader, mediaView);
 
         borderPane.setLeft(listVBox);
@@ -121,8 +123,8 @@ public class ConsumerGUI extends Application {
             });
 
             setOnMouseExited(event -> {
-                if (mediaPlayer != null) {
-                    mediaPlayer.stop(); // Stop the preview when mouse exits
+                if (previewMediaPlayer != null) {
+                    previewMediaPlayer.stop(); // Stop the preview when mouse exits
                 }
             });
         }
@@ -140,20 +142,21 @@ public class ConsumerGUI extends Application {
     }
 
     private void showPreview(String videoPath) {
-        if (mediaPlayer != null) {
-            mediaPlayer.stop(); // Stop any currently playing video
+        if (previewMediaPlayer != null) {
+            previewMediaPlayer.stop(); // Stop any currently playing video
         }
 
         Media media = new Media(new File(videoPath).toURI().toString());
-        mediaPlayer = new MediaPlayer(media);
+        previewMediaPlayer = new MediaPlayer(media);
 
-        mediaPlayer.setOnReady(() -> {
-            mediaPlayer.setStartTime(javafx.util.Duration.seconds(0));
-            mediaPlayer.setStopTime(javafx.util.Duration.seconds(10));
-            mediaPlayer.play(); // Play the video for 10 seconds
+        previewMediaPlayer.setOnReady(() -> {
+            previewMediaPlayer.setStartTime(javafx.util.Duration.seconds(0));
+            previewMediaPlayer.setStopTime(javafx.util.Duration.seconds(10));
+            previewMediaPlayer.setMute(true);
+            previewMediaPlayer.play(); // Play the video for 10 seconds
         });
 
-        mediaView.setMediaPlayer(mediaPlayer); // Set the media player to the media view
+        mediaView.setMediaPlayer(previewMediaPlayer); // Set the media player to the media view
     }
 
     private void playSelectedVideo(String videoPath) {
@@ -162,14 +165,14 @@ public class ConsumerGUI extends Application {
         videoStage.setTitle("Video Playback");
 
         Media media = new Media(new File(videoPath).toURI().toString());
-        mediaPlayer = new MediaPlayer(media);
-        MediaView videoMediaView = new MediaView(mediaPlayer);
+        MediaPlayer playbackMediaPlayer = new MediaPlayer(media);
+        MediaView videoMediaView = new MediaView(playbackMediaPlayer);
 
         Button backButton = new Button("Back to List");
         backButton.setOnAction(e -> {
             videoStage.close(); // Close the video playback window
-            if (mediaPlayer != null) {
-                mediaPlayer.stop(); // Stop the video if it's playing
+            if (playbackMediaPlayer != null) {
+                playbackMediaPlayer.stop(); // Stop the video if it's playing
             }
         });
 
@@ -178,7 +181,7 @@ public class ConsumerGUI extends Application {
         videoStage.setScene(scene);
         videoStage.show();
 
-        mediaPlayer.play(); // Play the full video
+        playbackMediaPlayer.play(); // Play the full video
     }
 
     public static void main(String[] args) {
