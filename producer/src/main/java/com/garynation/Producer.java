@@ -49,7 +49,7 @@ public class Producer {
     public static void main(String[] args) {
         String consumerHost = "localhost"; // Change to consumer's IP if needed
         int consumerPort = 12345; // Change to the consumer's port
-        String directoryPath = "D:\\Code\\STDISCM\\ProblemSet3\\producer_videos"; // Specify your directory path here
+        String directoryPath = "producer_videos"; // Specify your directory path here
 
         Producer producer = new Producer(consumerHost, consumerPort);
         producer.uploadAllVideosFromDirectory(directoryPath);
