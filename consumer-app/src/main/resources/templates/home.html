@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Video Consumer</title>
+    <style>
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+        }
+        .video-item {
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        .video-preview {
+            display: none;
+            position: absolute;
+            z-index: 10;
+            border: 1px solid #ccc;
+            background: #000;
+        }
+        .video-view {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 11;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+<h1>Uploaded Videos</h1>
+<div class="video-list">
+    <div th:each="video : ${videos}" class="video-item"
+         th:attr="onmouseover='showPreview(this, \'' + ${video} + '\')',
+                  onclick='playVideo(\'' + ${video} + '\')'"
+         onmouseout="hidePreview()">
+        <span th:text="${video}"></span>
+    </div>
+</div>
+<video id="videoPreview" class="video-preview" width="400" height="300" muted></video>
+<video id="videoView" class="video-view" width="640" height="480" controls></video>
+
+<script>
+    function showPreview(element, videoPath) {
+        const preview = document.getElementById('videoPreview');
+        if (!videoPath) return;
+
+        console.log("Previewing:", videoPath);
+        preview.src = '/uploads/' + videoPath;
+        preview.currentTime = 0;
+        preview.style.display = 'block';
+        preview.style.left = element.getBoundingClientRect().left + 'px';
+        preview.style.top = (element.getBoundingClientRect().top + element.offsetHeight) + 'px';
+
+
+        // Play only the first 10 seconds
+        preview.play();
+        let timeoutId;
+
+        const onTimeUpdate = () => {
+            if (preview.currentTime >= 10) {
+                preview.pause();
+                preview.currentTime = 0; // Reset to the beginning
+                preview.removeEventListener('timeupdate', onTimeUpdate);
+                clearTimeout(timeoutId); // Clear the timeout if it exists
+            }
+        };
+
+        preview.addEventListener('timeupdate', onTimeUpdate);
+
+        // Add a timeout as a fallback in case timeupdate event is not triggered.
+        timeoutId = setTimeout(() => {
+            if (preview.currentTime >= 10) return; //if the time update already handled this, do nothing.
+            preview.pause();
+            preview.currentTime = 0;
+            preview.removeEventListener('timeupdate', onTimeUpdate);
+        }, 10500); // 10.5 seconds to give a small buffer.
+    }
+
+    function hidePreview() {
+        const preview = document.getElementById('videoPreview');
+        preview.pause();
+        preview.style.display = 'none';
+    }
+
+    function playVideo(videoPath) {
+        const view = document.getElementById('videoView');
+        if (!videoPath) return;
+
+        view.src = '/uploads/' + videoPath;
+        view.style.display = 'block';
+        view.play();
+    }
+
+    document.getElementById('videoView').addEventListener('click', function() {
+        this.pause();
+        this.style.display = 'none';
+    });
+</script>
+</body>
+</html>
