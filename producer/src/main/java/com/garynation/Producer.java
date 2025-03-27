@@ -1,14 +1,18 @@
 package com.garynation;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Producer {
-    private String consumerHost;
-    private int consumerPort;
+    private final String consumerHost;
+    private final int consumerPort;
 
     public Producer(String consumerHost, int consumerPort) {
         this.consumerHost = consumerHost;
@@ -19,15 +23,24 @@ public class Producer {
         File file = new File(filePath);
         try (Socket socket = new Socket(consumerHost, consumerPort);
              FileInputStream fis = new FileInputStream(file);
-             OutputStream os = socket.getOutputStream()) {
+             OutputStream os = socket.getOutputStream();
+             DataOutputStream dos = new DataOutputStream(os);
+             InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
+             BufferedReader reader = new BufferedReader(streamReader)) {
+
+            dos.writeUTF(file.getName());
+            dos.flush();
 
             byte[] buffer = new byte[4096];
             int bytesRead;
             while ((bytesRead = fis.read(buffer)) != -1) {
-                os.write(buffer, 0, bytesRead);
+                dos.write(buffer, 0, bytesRead);
             }
-            os.flush();
-            System.out.println("Upload complete: " + file.getName());
+            dos.flush();
+            socket.shutdownOutput();
+
+            String response = reader.readLine(); // This waits for the server response
+            System.out.println("Server Response: " + response);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,16 +55,39 @@ public class Producer {
                 uploadVideo(file.getAbsolutePath());
             }
         } else {
-            System.out.println("No video files found in the specified directory.");
+            System.out.println("No video files found in the specified directory: " + directoryPath);
         }
     }
 
+    public void uploadAllVideosFromDirectoriesThreaded(List<String> directoryPaths, int numThreads) {
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+
+            directoryPaths.forEach(directoryPath -> executor.submit(() -> uploadAllVideosFromDirectory(directoryPath)));
+
+            executor.shutdown();
+            while (!executor.isTerminated()) {
+                // Wait for all threads to finish
+            }
+        System.out.println("All uploads complete from all directories.");
+    }
+
     public static void main(String[] args) {
-        String consumerHost = "localhost"; // Change to consumer's IP if needed
-        int consumerPort = 12345; // Change to the consumer's port
-        String directoryPath = "producer_videos"; // Specify your directory path here
+        String consumerHost = "localhost";
+        int consumerPort = 12345;
 
         Producer producer = new Producer(consumerHost, consumerPort);
-        producer.uploadAllVideosFromDirectory(directoryPath);
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the number of threads: ");
+        int numThreads = scanner.nextInt();
+
+        List<String> directoryPaths = new ArrayList<>();
+        for (int i = 1; i <= numThreads; i++) {
+            directoryPaths.add("producer_videos" + i);
+        }
+
+        scanner.close();
+
+        producer.uploadAllVideosFromDirectoriesThreaded(directoryPaths, numThreads);
     }
 }
