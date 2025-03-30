@@ -13,8 +13,6 @@ public class ConsumerAppApplication {
 
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context = SpringApplication.run(ConsumerAppApplication.class, args);
-		VideoHandler videoHandler = context.getBean(VideoHandler.class);
-		videoHandler.startServer();
 	}
 
 }

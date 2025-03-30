@@ -51,8 +51,8 @@ public class VideoUploadController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to upload video: " + e.getMessage());
         } catch (RejectedExecutionException e) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body("Server busy. Please try again later.");
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Queue is full. Try again later.");
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }

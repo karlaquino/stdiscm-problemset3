@@ -70,6 +70,7 @@ public class Producer {
 
     private void retryUpload(String filePath) {
         try {
+            System.out.println("Queue full, retrying in 5 seconds.");
             Thread.sleep(5000); // Wait before retrying
             uploadVideo(filePath);
         } catch (InterruptedException e) {

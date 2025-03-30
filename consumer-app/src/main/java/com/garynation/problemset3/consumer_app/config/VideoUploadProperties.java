@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "video.upload")
 public class VideoUploadProperties {
 
-    private int threadPoolSize = 2; // Default value
-    private int queueSize = 1;     // Default value
+    private int threadPoolSize = 4; // Default value
+    private int queueSize = 10;     // Default value
 
     public int getThreadPoolSize() {
         return threadPoolSize;

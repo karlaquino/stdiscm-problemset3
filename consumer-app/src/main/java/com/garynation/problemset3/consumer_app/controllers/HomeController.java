@@ -1,7 +1,6 @@
 package com.garynation.problemset3.consumer_app.controllers;
 
 import com.garynation.problemset3.consumer_app.NewVideoEvent;
-import com.garynation.problemset3.consumer_app.VideoHandler;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -7,11 +7,8 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.util.Map;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 
@@ -45,7 +42,6 @@ public class VideoUploadService {
                 0L,
                 TimeUnit.MILLISECONDS,
                 workQueue,
-                Executors.defaultThreadFactory(),
                 (r, executor) -> {
                     logger.warning("Task rejected: Queue is full");
                     throw new RejectedExecutionException("Video upload queue is full, try again later");
@@ -173,25 +169,5 @@ public class VideoUploadService {
         }
     }
 
-    /**
-     * Returns the current queue size
-     */
-    public int getQueueSize() {
-        return workQueue.size();
-    }
-
-    /**
-     * Returns the maximum allowed queue size
-     */
-    public int getMaxQueueSize() {
-        return workQueue.remainingCapacity() + workQueue.size();
-    }
-
-    /**
-     * Returns the number of active threads
-     */
-    public int getActiveThreadCount() {
-        return threadPool.getActiveCount();
-    }
 
 }
