@@ -37,7 +37,7 @@ public class HomeController {
 
     private void updateVideoList() {
         videoFiles.clear();
-        File dir = new File(VideoHandler.getSaveDirectory());
+        File dir = new File("uploaded_videos");
         File[] files = dir.listFiles((d, name) -> name.endsWith(".mp4") || name.endsWith(".avi") || name.endsWith(".mov"));
         if (files != null) {
             for (File file : files) {

@@ -2,6 +2,7 @@ package com.garynation;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public class Producer {
 
         try {
             String boundary = "------Boundary" + System.currentTimeMillis();
-            HttpURLConnection connection = (HttpURLConnection) new URL(consumerUrl).openConnection();
+            HttpURLConnection connection = (HttpURLConnection) URI.create(consumerUrl).toURL().openConnection();
 
             connection.setDoOutput(true);
             connection.setRequestMethod("POST");

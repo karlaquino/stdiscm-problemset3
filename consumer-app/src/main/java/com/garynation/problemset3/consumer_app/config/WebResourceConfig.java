@@ -9,6 +9,6 @@ public class WebResourceConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + VideoHandler.getSaveDirectory() + "/");
+                .addResourceLocations("file:uploaded_videos/");
     }
 }
