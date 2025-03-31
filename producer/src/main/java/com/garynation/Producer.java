@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Producer {
     private final String consumerUrl;
+    private static final int DEFAULT_THREAD_POOL_SIZE = 4;
+
 
     public Producer(String consumerUrl) {
         this.consumerUrl = consumerUrl;
@@ -109,22 +111,49 @@ public class Producer {
         System.out.println("All uploads complete.");
     }
 
+    public static int getThreadPoolSizeFromEnv() {
+        String threadPoolSizeStr = System.getenv("PRODUCER_THREAD_POOL_SIZE");
+
+        // If environment variable is not set, use default
+        if (threadPoolSizeStr == null || threadPoolSizeStr.isEmpty()) {
+            System.out.println("Thread pool size not specified. Using default: " + DEFAULT_THREAD_POOL_SIZE);
+            return DEFAULT_THREAD_POOL_SIZE;
+        }
+
+        // Try to parse the environment variable
+        try {
+            int threadPoolSize = Integer.parseInt(threadPoolSizeStr);
+
+            // Validate thread pool size is greater than 0
+            if (threadPoolSize <= 0) {
+                System.err.println("Error: Thread pool size must be a positive integer. Got: " + threadPoolSize);
+                System.exit(1);
+            }
+
+            System.out.println("Using thread pool size: " + threadPoolSize);
+            return threadPoolSize;
+
+        } catch (NumberFormatException e) {
+            System.err.println("Error: Thread pool size must be a valid integer. Got: " + threadPoolSizeStr);
+            System.exit(1);
+            return -1; // This is never reached but needed for compilation
+        }
+    }
+
+
     public static void main(String[] args) {
         String consumerUrl = "http://localhost:8080/api/videos/upload";
 
         Producer producer = new Producer(consumerUrl);
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter the number of threads: ");
-        int numThreads = scanner.nextInt();
+        int threadPoolSize = getThreadPoolSizeFromEnv();
+
 
         List<String> directoryPaths = new ArrayList<>();
-        for (int i = 1; i <= numThreads; i++) {
+        for (int i = 1; i <= threadPoolSize; i++) {
             directoryPaths.add("producer_videos" + i);
         }
 
-        scanner.close();
-
-        producer.uploadAllVideosFromDirectoriesThreaded(directoryPaths, numThreads);
+        producer.uploadAllVideosFromDirectoriesThreaded(directoryPaths, threadPoolSize);
     }
 }

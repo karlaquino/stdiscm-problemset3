@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="producer-app-1.0.0">
+    <output-path>$PROJECT_DIR$/out/artifacts/producer_app_1_0_0</output-path>
+    <root id="archive" name="producer-app-1.0.0.jar" />
+  </artifact>
+</component>
