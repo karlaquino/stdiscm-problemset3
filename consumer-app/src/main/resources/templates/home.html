@@ -2,37 +2,143 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <title>Video Consumer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        .video-list {
-            display: flex;
-            flex-direction: column;
-            width: 200px;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
         }
+        
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            color: #fff;
+            font-weight: 500;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
         .video-item {
-            margin: 10px 0;
             cursor: pointer;
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            background-color: #2c2c2c;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+        
+        .video-item:hover {
+            background-color: #3a3a3a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .video-item span {
+            font-size: 16px;
+            margin-left: 8px;
+        }
+        
+        .video-item:before {
+            content: "▶";
+            color: #3498db;
+            font-size: 12px;
+        }
+        
         .video-preview {
             display: none;
             position: absolute;
             z-index: 10;
-            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
             background: #000;
+            overflow: hidden;
         }
-        .video-view {
+        
+        .video-view-container {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .video-view-wrapper {
+            position: relative;
+            width: 80%;
+            max-width: 1200px;
+        }
+        
+        .video-view {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            border-radius: 5px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close-button {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 11;
-            background-color: black;
+            top: -40px;
+            right: 0;
+            background-color: #fff;
+            color: #333;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close-button:hover {
+            background-color: #f0f0f0;
+        }
+        
+        @media (max-width: 768px) {
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .video-view-wrapper {
+                width: 95%;
+            }
         }
     </style>
 </head>
 <body>
 <h1>Uploaded Videos</h1>
-<div class="video-list">
+
+<!-- Video Grid -->
+<div class="video-grid">
     <div th:each="video : ${videos}" class="video-item"
          th:attr="onmouseover='showPreview(this, \'' + ${video} + '\')',
                   onclick='playVideo(\'' + ${video} + '\')'"
@@ -40,8 +146,17 @@
         <span th:text="${video}"></span>
     </div>
 </div>
-<video id="videoPreview" class="video-preview" width="400" height="300" muted></video>
-<video id="videoView" class="video-view" width="640" height="480" controls></video>
+
+<!-- Video Preview -->
+<video id="videoPreview" class="video-preview" width="400" height="225" muted></video>
+
+<!-- Active Video View -->
+<div id="videoViewContainer" class="video-view-container">
+    <div class="video-view-wrapper">
+        <button id="closeButton" class="close-button">✕</button>
+        <video id="videoView" class="video-view" controls></video>
+    </div>
+</div>
 
 <script>
     function showPreview(element, videoPath) {
@@ -52,9 +167,20 @@
         preview.src = '/uploads/' + videoPath;
         preview.currentTime = 0;
         preview.style.display = 'block';
-        preview.style.left = element.getBoundingClientRect().left + 'px';
-        preview.style.top = (element.getBoundingClientRect().top + element.offsetHeight) + 'px';
-
+        
+        const rect = element.getBoundingClientRect();
+        const previewWidth = 400;
+        
+        // Check if preview would go off screen to the right
+        if (rect.right + previewWidth > window.innerWidth) {
+            // Position to the left of the item
+            preview.style.left = (rect.left - previewWidth - 10) + 'px';
+        } else {
+            // Position to the right of the it
+            preview.style.left = (rect.right + 10) + 'px';
+        }
+        
+        preview.style.top = rect.top + 'px';
 
         // Play only the first 10 seconds
         preview.play();
@@ -71,13 +197,12 @@
 
         preview.addEventListener('timeupdate', onTimeUpdate);
 
-        // Add a timeout as a fallback in case timeupdate event is not triggered.
         timeoutId = setTimeout(() => {
-            if (preview.currentTime >= 10) return; //if the time update already handled this, do nothing.
+            if (preview.currentTime >= 10) return;
             preview.pause();
             preview.currentTime = 0;
             preview.removeEventListener('timeupdate', onTimeUpdate);
-        }, 10500); // 10.5 seconds to give a small buffer.
+        }, 10500);
     }
 
     function hidePreview() {
@@ -87,16 +212,29 @@
     }
 
     function playVideo(videoPath) {
+        const container = document.getElementById('videoViewContainer');
         const view = document.getElementById('videoView');
         if (!videoPath) return;
 
         view.src = '/uploads/' + videoPath;
-        view.style.display = 'block';
+        container.style.display = 'flex';
         view.play();
     }
 
-    document.getElementById('videoView').addEventListener('click', function() {
-        this.pause();
+    document.getElementById('closeButton').addEventListener('click', function() {
+        const container = document.getElementById('videoViewContainer');
+        const view = document.getElementById('videoView');
+        view.pause();
+        container.style.display = 'none';
+    });
+
+    document.getElementById('videoView').addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+
+    document.getElementById('videoViewContainer').addEventListener('click', function() {
+        const view = document.getElementById('videoView');
+        view.pause();
         this.style.display = 'none';
     });
 </script>
