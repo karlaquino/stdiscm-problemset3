@@ -1,4 +1,4 @@
-# Networked Producer and Consumer Application
+# Problem Set 3
 
 This project implements a networked system for video uploading and consumption. It consists of two main components: a producer application that uploads video files to a consumer application, and a consumer application that receives, stores, and serves those videos.
 
@@ -15,19 +15,15 @@ This project implements a networked system for video uploading and consumption. 
 
 ## Project Structure
 
-* **Producer Application:**
-    * `producer/`: Contains the producer application.
-* **Consumer Application:**
-    * `consumer_app/`: Contains the Spring Boot application code.
+- **Producer**: Java application that processes video files and uploads them
+- **Consumer-App**: Application that handles the processing of uploaded videos
 
-## Building and Running the Producer Application
+## Getting Started
 
-1.  **Clone the Repository:**
+1. Set up the Producer by following the instructions in the `producer/README.md`
+2. Set up the Consumer by following the instructions in the `consumer-app/README.md`
 
-    ```bash
-    git clone https://github.com/Andre0819/stdiscm-problemset3.git
-    cd producer
-    ```
+## Requirements
 
 2.  **Create a `producer_videos` directory:**
 
