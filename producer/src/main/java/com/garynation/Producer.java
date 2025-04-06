@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Producer {
     private final String consumerUrl;
-    private static final int DEFAULT_THREAD_POOL_SIZE = 4;
+    // private static final int DEFAULT_THREAD_POOL_SIZE = 4;
 
 
     public Producer(String consumerUrl) {
@@ -116,40 +116,48 @@ public class Producer {
         Scanner scanner = new Scanner(System.in);
         int threadPoolSize;
 
-        // If environment variable is not set, use default
-        if (threadPoolSizeStr == null || threadPoolSizeStr.isEmpty()) {
-            System.out.println("Thread pool size not specified. Using default: " + DEFAULT_THREAD_POOL_SIZE);
-            return DEFAULT_THREAD_POOL_SIZE;
-        }
-        
-        // Check if input is numeric before parsing
-        if (!threadPoolSizeStr.matches("\\d+")) {
-            System.err.println("Error: Thread pool size must contain only digits. Got: " + threadPoolSizeStr);
-            return promptForValidThreadPoolSize(scanner);
-        }
-
-        // Try to parse the environment variable
         try {
-            threadPoolSize = Integer.parseInt(threadPoolSizeStr);
+            // If environment variable is not set, use default
+            if (threadPoolSizeStr == null || threadPoolSizeStr.isEmpty()) {
+                // System.out.println("Thread pool size not specified. Using default: " + DEFAULT_THREAD_POOL_SIZE);
+                // return DEFAULT_THREAD_POOL_SIZE;
 
-            // Validate thread pool size is greater than 0
-            if (threadPoolSize <= 0) {
-                System.err.println("Error: Thread pool size must be a positive integer and less than 20. Got: " + threadPoolSize);
+                System.out.println("You haven't set the PRODUCER_THREAD_POOL_SIZE environment variable. Please enter a valid thread pool size (1-20):");
                 return promptForValidThreadPoolSize(scanner);
             }
             
-            // Validate thread pool size is not greater than 20
-            if (threadPoolSize > 20) {
-                System.err.println("Error: Thread pool size must not exceed 20. Got: " + threadPoolSize);
+            // Check if input is numeric before parsing
+            if (!threadPoolSizeStr.matches("\\d+")) {
+                System.err.println("Error: Thread pool size must contain only digits. Got: " + threadPoolSizeStr);
                 return promptForValidThreadPoolSize(scanner);
             }
 
-            System.out.println("Using thread pool size: " + threadPoolSize);
-            return threadPoolSize;
+            // Try to parse the environment variable
+            try {
+                threadPoolSize = Integer.parseInt(threadPoolSizeStr);
 
-        } catch (NumberFormatException e) {
-            System.err.println("Error: Thread pool size must be a valid integer. Got: " + threadPoolSizeStr);
-            return promptForValidThreadPoolSize(scanner);
+                // Validate thread pool size is greater than 0
+                if (threadPoolSize <= 0) {
+                    System.err.println("Error: Thread pool size must be a positive integer and less than 20. Got: " + threadPoolSize);
+                    return promptForValidThreadPoolSize(scanner);
+                }
+                
+                // Validate thread pool size is not greater than 20
+                if (threadPoolSize > 20) {
+                    System.err.println("Error: Thread pool size must not exceed 20. Got: " + threadPoolSize);
+                    return promptForValidThreadPoolSize(scanner);
+                }
+
+                System.out.println("Using thread pool size: " + threadPoolSize);
+                return threadPoolSize;
+
+            } catch (NumberFormatException e) {
+                System.err.println("Error: Thread pool size must be a valid integer. Got: " + threadPoolSizeStr);
+                return promptForValidThreadPoolSize(scanner);
+            }
+        } finally {
+            // Don't close the scanner here as it would also close System.in
+            // We'll close it in the main method instead
         }
     }
 
@@ -157,6 +165,7 @@ public class Producer {
         int threadPoolSize;
         while (true) {
             System.out.println("Please enter a valid thread pool size (1-20):");
+            System.out.flush(); // Ensure prompt is displayed
             String input = scanner.nextLine().trim();
             
             if (!input.matches("\\d+")) {
@@ -187,11 +196,13 @@ public class Producer {
 
     public static void main(String[] args) {
         String consumerUrl = "http://localhost:8080/api/videos/upload";
+        
+        // Ensure output is flushed
+        System.out.flush();
 
         Producer producer = new Producer(consumerUrl);
 
         int threadPoolSize = getThreadPoolSizeFromEnv();
-
 
         List<String> directoryPaths = new ArrayList<>();
         for (int i = 1; i <= threadPoolSize; i++) {
